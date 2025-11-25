@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   // 'jobseeker' or 'recruiter'
+  company   String?  // recruiters only
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  cv        CV?
+  jobs      Job[]    @relation("RecruiterJobs")
+}
+
+model CV {
+  id              Int      @id @default(autoincrement())
+  userId          Int      @unique
+  fileName        String
+  filePath        String
+  extractedSkills String[]
+  education       String
+  experience      String
+  rawText         String   @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Job {
+  id              Int      @id @default(autoincrement())
+  recruiterId     Int
+  title           String
+  description     String   @db.Text
+  requiredSkills  String[]
+  experience      String
+  education       String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  recruiter       User     @relation("RecruiterJobs", fields: [recruiterId], references: [id], onDelete: Cascade)
+}
